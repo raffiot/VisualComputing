@@ -1,6 +1,6 @@
-float mouseW = 1;
-float rx = 0;
-float rz = 0;
+float mouseW = 0.01;
+float rX = 0;
+float rZ = 0;
 float mx = 0;
 float my = 0;
 
@@ -11,14 +11,14 @@ void setup() {
   noStroke();
 }
 void draw() { 
- background(200);
+ background(89);
  textSize(16);
- text("rotateX: " + degrees(rx) + " rotateZ: " + degrees(rz) + " MouseW: " + mouseW, 5, 10,0);
+ text("rotateX: " + degrees(rX) + " rotateZ: " + degrees(rZ) + " MouseW: " + mouseW, 5, 10,0);
  lights();
  camera(width/2.0, height/2.0, 450, 250, 250, 0, 0, 1, 0);
  translate(width/2, height/2, 0);
- rotateX(-rx);
- rotateZ(rz);
+ rotateX(map(rX,-1,1,-PI/3.0, PI/3.0 ));
+ rotateZ(map(rZ,-1,1,-PI/3.0, PI/3.0));
  box(200,10,200);
 }
 
@@ -28,26 +28,34 @@ void mousePressed(){
 }  
 
 void mouseDragged(){
-  float a = map(mouseY, my, height, 0, PI) * mouseW;
-  float b = map(mouseX, mx, width, 0, PI) * mouseW;
-  if((a > -(1/3.0)*PI) && (a < (1/3.0)*PI)){
-    rx = a; 
+  rZ += (mouseX - mx) * mouseW;
+  rX -= (mouseY - my) * mouseW;
+  if(rZ > 1){
+    rZ=1;
   }
-  if((b > -(1/3.0)*PI) && (b < (1/3.0)*PI)){
-   rz = b; 
+  else if(rZ < -1){
+   rZ=-1; 
   }
+  if(rX> 1){
+    rX=1;
+  }
+  else if(rX < -1){
+   rX=-1; 
+  } 
+  mx = mouseX;
+  my = mouseY;
 }
 
 void mouseWheel(MouseEvent event){
   float e = event.getCount();
   float k;
   if(e > 0){
-     k = mouseW + 0.01;
+     k = mouseW - 0.0005;
   }
   else{
-    k = mouseW - 0.01;
+    k = mouseW + 0.0005;
   }
-  if((k <= 1.5) && ( k >= 0.2)){
+  if((k <= 0.025) && ( k >= 0.0008)){
    mouseW = k; 
   }
 }
