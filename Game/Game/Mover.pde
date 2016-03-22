@@ -2,7 +2,7 @@ class Mover {
   PVector location;
   PVector velocity;
   PVector gravityForce;
-  float gravityConstant = 0.1;
+  float gravityConstant = 9.81;
   
   Mover() {
     gravityForce = new PVector(0,0,0);
@@ -21,8 +21,8 @@ class Mover {
   }
   
   void computeVelocity(float rotZ, float rotX){
-    gravityForce.x = sin(rotZ) * gravityConstant;
-    gravityForce.z = sin(rotX) * gravityConstant;
+    gravityForce.x = sin(rotZ) * gravityConstant/30.0;
+    gravityForce.z = sin(rotX) * gravityConstant/30.0;
     float normalForce = 1;
     float mu = 0.01;
     float frictionMagnitude = normalForce * mu;
