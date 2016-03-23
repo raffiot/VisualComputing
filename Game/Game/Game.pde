@@ -5,6 +5,7 @@ float mx = 0;
 float my = 0;
 ArrayList<PVector> cylinder;
 Mover mover;
+Cylinder c;
 
 enum State{
   GAME, CYLINDER
@@ -35,9 +36,24 @@ void draw() {
      break;
      
    case CYLINDER:
-     clear();
+     placeCylinder();
      break;
  } 
+}
+
+void placeCylinder(){
+  pushMatrix();
+  translate(width/2, height/2, 0);
+  rotateX(PI/2);
+  box(200,10,200);
+  translate(mover.location.x, mover.location.y, mover.location.z);
+  sphere(10);
+  c = new Cylinder();
+  rotateX(PI/2);
+  popMatrix();
+  translate(0, 0, 0);
+  c.show();
+  
 }
 
 void drawGame(){
