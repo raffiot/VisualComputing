@@ -3,7 +3,10 @@ float rX = 0;
 float rZ = 0;
 float mx = 0;
 float my = 0;
-ArrayList<PVector> cylinder;
+int boxX = 200;
+int boxY = 10;
+int boxZ = 200;
+ArrayList<PVector> cylinder = new ArrayList();
 Mover mover;
 Cylinder c;
 
@@ -52,8 +55,12 @@ void placeCylinder(){
   rotateX(PI/2);
   popMatrix();
   translate(0, 0, 0);
-  c.show();
-  
+  pushMatrix();
+  c.show(mouseX,mouseY);
+  popMatrix();
+  pushMatrix();
+  c.drawCylinder(cylinder);
+  popMatrix();
 }
 
 void drawGame(){
@@ -62,7 +69,7 @@ void drawGame(){
   float rotX = map(rX,-1,1,-PI/3.0, PI/3.0 );
   rotateX(rotX);
   rotateZ(rotZ);
-  box(200,10,200);
+  box(boxX,boxY,boxZ);
   pushMatrix();
   translate(0,-15,0);
   mover.computeVelocity(rotZ,rotX);
@@ -75,6 +82,9 @@ void drawGame(){
 void mousePressed(){
      mx = mouseX;
      my = mouseY;
+     if((globalState == State.CYLINDER)){
+       cylinder.add(new PVector(mouseX,mouseY,0));
+      } 
 }  
 
 void mouseDragged(){
@@ -124,4 +134,5 @@ void keyReleased(){
   if(key == CODED && keyCode == SHIFT){
     globalState = State.GAME;
   }
-}
+}  
+  

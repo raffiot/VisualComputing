@@ -12,7 +12,7 @@ class Cylinder{
     openTriangle2 = new PShape();
   }
   
-  void show(){
+  void show(float mX , float mY){
       float angle;
       float[] x = new float[cylinderResolution + 1];
       float[] y = new float[cylinderResolution + 1];
@@ -40,9 +40,17 @@ class Cylinder{
         openTriangle1.endShape();
         openTriangle2.endShape();
         openCylinder.endShape();
-        translate(mouseX, mouseY, 0);
+        translate(mX, mY, 0);
         shape(openTriangle1);
         shape(openTriangle2);
         shape(openCylinder);
     }
+    
+    void drawCylinder(ArrayList<PVector> vectors){
+      for(PVector v : vectors){
+        pushMatrix();
+        show(v.x,v.y);
+        popMatrix();
+      }  
+    } 
 }
