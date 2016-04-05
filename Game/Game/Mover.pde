@@ -53,12 +53,13 @@ class Mover {
   }
   
   void checkHits(ArrayList<PVector> a){
-    PVector l = new PVector(location.x, -location.z, 0);
     for(PVector v: a){
-      if(distance(v, l) <= (cylinderBaseSize + sizeSphere)/2){
+      PVector cyl = new PVector(v.x, 0, -v.y);
+      if(distance(cyl, location) <= (cylinderBaseSize + sizeSphere)/2){
         println("here");
-        //PVector n = PVector.sub(l, v).normalize();
-        //velocity = PVector.sub(velocity, n.mult(velocity.dot(n)*2));
+        PVector n = PVector.sub(location, cyl).normalize();
+        PVector vel = PVector.sub(velocity, n.mult(velocity.dot(n)*2));
+        velocity = new PVector(vel.x, 0, vel.z);
       }
     }
   }
