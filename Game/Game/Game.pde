@@ -6,7 +6,9 @@ float my = 0;
 int boxX = 200;
 int boxY = 10;
 int boxZ = 200;
-ArrayList<PVector> cylinder = new ArrayList();
+int sizeSphere = 10;
+ArrayList<PVector> cylinderState = new ArrayList();
+ArrayList<PVector> cylinderOnPlate = new ArrayList();
 Mover mover;
 Cylinder c;
 
@@ -26,9 +28,9 @@ void setup() {
 }
 
 void draw() { 
- background(89);
- 
- switch (globalState) {
+  background(89);
+
+  switch (globalState) {
    
    case GAME: 
      textSize(16);
@@ -41,7 +43,7 @@ void draw() {
    case CYLINDER:
      placeCylinder();
      break;
- } 
+  } 
 }
 
 void placeCylinder(){
@@ -50,16 +52,14 @@ void placeCylinder(){
   rotateX(PI/2);
   box(200,10,200);
   translate(mover.location.x, mover.location.y, mover.location.z);
-  sphere(10);
+  sphere(sizeSphere);
+  popMatrix();
+  pushMatrix();
   c = new Cylinder();
-  rotateX(PI/2);
-  popMatrix();
-  translate(0, 0, 0);
-  pushMatrix();
-  c.show(mouseX,mouseY);
+  c.show(mouseX,mouseY, 0);
   popMatrix();
   pushMatrix();
-  c.drawCylinder(cylinder);
+  c.drawCylinder(cylinderState);
   popMatrix();
 }
 
@@ -75,16 +75,27 @@ void drawGame(){
   mover.computeVelocity(rotZ,rotX);
   mover.checkEdges();
   mover.update();
+  pushMatrix();
+  rotateX(-PI/2);
+  mover.checkHits(cylinderOnPlate);
+  popMatrix();
   mover.display();
+  popMatrix();
+  pushMatrix();
+  rotateX(PI/2);
+  c = new Cylinder();
+  c.drawCylinder(cylinderState);
   popMatrix();
 }
 
 void mousePressed(){
-     mx = mouseX;
-     my = mouseY;
-     if((globalState == State.CYLINDER)){
-       cylinder.add(new PVector(mouseX,mouseY,0));
-      } 
+  mx = mouseX;
+  my = mouseY;
+  if((globalState == State.CYLINDER)){
+    if((mx-width/2 > -boxX/2) && (mx-width/2 < boxX/2) && (my-height/2 > -boxZ/2) && (my-height/2 < boxZ/2)){
+      cylinderState.add(new PVector(mouseX,mouseY,0));
+    }
+  } 
 }  
 
 void mouseDragged(){

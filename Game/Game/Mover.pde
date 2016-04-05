@@ -17,7 +17,7 @@ class Mover {
     strokeWeight(2);
     fill(127);
     translate(location.x, location.y, -location.z);
-    sphere(10);
+    sphere(sizeSphere);
   }
   
   void computeVelocity(float rotZ, float rotX){
@@ -50,5 +50,20 @@ class Mover {
       location.z = -95;
       velocity.set(velocity.x, velocity.y, -velocity.z).mult(0.6);
     }  
+  }
+  
+  void checkHits(ArrayList<PVector> a){
+    PVector l = new PVector(location.x, -location.z, 0);
+    for(PVector v: a){
+      if(distance(v, l) <= (cylinderBaseSize + sizeSphere)/2){
+        println("here");
+        //PVector n = PVector.sub(l, v).normalize();
+        //velocity = PVector.sub(velocity, n.mult(velocity.dot(n)*2));
+      }
+    }
+  }
+  
+  double distance(PVector v1, PVector v2){
+    return sqrt(pow(v2.x-v1.x, 2)+pow(v2.y-v1.y, 2)+ pow(v2.z-v1.z, 2));
   }
 }

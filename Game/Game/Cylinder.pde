@@ -1,7 +1,8 @@
+float cylinderBaseSize = 10;
+float cylinderHeight = 20;
+int cylinderResolution = 10;
+
 class Cylinder{
-  float cylinderBaseSize = 10;
-  float cylinderHeight = 10;
-  int cylinderResolution = 10;
   PShape openCylinder;
   PShape openTriangle1;
   PShape openTriangle2;
@@ -12,16 +13,16 @@ class Cylinder{
     openTriangle2 = new PShape();
   }
   
-  void show(float mX , float mY){
-      float angle;
-      float[] x = new float[cylinderResolution + 1];
-      float[] y = new float[cylinderResolution + 1];
-      //get the x and y position on a circle for all the sides
-      for(int i = 0; i < x.length; i++) {
-        angle = (TWO_PI / cylinderResolution) * i;
-        x[i] = sin(angle) * cylinderBaseSize;
-        y[i] = cos(angle) * cylinderBaseSize;
-      }
+  void show(float mX , float mY, float mZ){
+    float angle;
+    float[] x = new float[cylinderResolution + 1];
+    float[] y = new float[cylinderResolution + 1];
+    //get the x and y position on a circle for all the sides
+    for(int i = 0; i < x.length; i++) {
+      angle = (TWO_PI / cylinderResolution) * i;
+      x[i] = sin(angle) * cylinderBaseSize;
+      y[i] = cos(angle) * cylinderBaseSize;
+    }
       openTriangle1 = createShape();
       openTriangle1.beginShape(TRIANGLE_FAN);
       openTriangle2 = createShape();
@@ -40,17 +41,24 @@ class Cylinder{
         openTriangle1.endShape();
         openTriangle2.endShape();
         openCylinder.endShape();
-        translate(mX, mY, 0);
+        translate(mX, mY, mZ);
         shape(openTriangle1);
         shape(openTriangle2);
         shape(openCylinder);
     }
     
-    void drawCylinder(ArrayList<PVector> vectors){
-      for(PVector v : vectors){
-        pushMatrix();
-        show(v.x,v.y);
-        popMatrix();
-      }  
-    } 
+  void drawCylinder(ArrayList<PVector> vectors){
+    cylinderOnPlate = new ArrayList<PVector>();
+    for(PVector v : vectors){
+      pushMatrix();
+      if(globalState == State.GAME){
+        show(v.x-width/2, v.y-height/2, 0);
+        cylinderOnPlate.add(new PVector(v.x-width/2, v.y-height/2, 0));
+      }
+      else{
+        show(v.x,v.y, 0);
+      }
+      popMatrix();
+    }
+  }
 }
