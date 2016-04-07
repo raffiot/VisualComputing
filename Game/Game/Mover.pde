@@ -4,6 +4,7 @@ class Mover {
   PVector gravityForce;
   float gravityConstant = 9.81;
   
+  
   Mover() {
     gravityForce = new PVector(0,0,0);
     location = new PVector(0, 0, 0);
@@ -34,32 +35,32 @@ class Mover {
   }
   
   void checkEdges(){
-    if(location.x+5 > 100){
+    if(location.x > 95){
       location.x = 95;
-      velocity.set(-velocity.x, velocity.y,velocity.z).mult(0.6);
+      velocity.set(-velocity.x, velocity.y,velocity.z).mult(0.8);
     }
-    else if(location.x-5 < -100){
+    else if(location.x < -95){
       location.x = -95;
-      velocity.set(-velocity.x, velocity.y,velocity.z).mult(0.6);
+      velocity.set(-velocity.x, velocity.y,velocity.z).mult(0.8);
     }
-    if(location.z+5 > 100){
+    if(location.z > 95){
       location.z = 95;
-      velocity.set(velocity.x, velocity.y, -velocity.z).mult(0.6);
+      velocity.set(velocity.x, velocity.y, -velocity.z).mult(0.8);
     }
-    else if(location.z-5 < -100){
+    else if(location.z < -95){
       location.z = -95;
-      velocity.set(velocity.x, velocity.y, -velocity.z).mult(0.6);
+      velocity.set(velocity.x, velocity.y, -velocity.z).mult(0.8);
     }  
   }
   
   void checkHits(ArrayList<PVector> a){
     for(PVector v: a){
       PVector cyl = new PVector(v.x, 0, -v.y);
-      if(distance(cyl, location) <= (cylinderBaseSize + sizeSphere)/2){
-        println("here");
+      if(distance(cyl, location) < (cylinderBaseSize + sizeSphere)){
         PVector n = PVector.sub(location, cyl).normalize();
         PVector vel = PVector.sub(velocity, n.mult(velocity.dot(n)*2));
         velocity = new PVector(vel.x, 0, vel.z);
+        location = cyl.sub(n.normalize().mult(sizeSphere+cylinderBaseSize+0.1));
       }
     }
   }

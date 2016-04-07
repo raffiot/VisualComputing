@@ -73,13 +73,10 @@ void drawGame(){
   pushMatrix();
   translate(0,-15,0);
   mover.computeVelocity(rotZ,rotX);
-  mover.checkEdges();
-  mover.update();
-  pushMatrix();
-  rotateX(-PI/2);
   mover.checkHits(cylinderOnPlate);
-  popMatrix();
+  mover.update();
   mover.display();
+  mover.checkEdges();
   popMatrix();
   pushMatrix();
   rotateX(PI/2);
