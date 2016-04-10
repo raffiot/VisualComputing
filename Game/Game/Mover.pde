@@ -53,7 +53,7 @@ class Mover {
     }  
   }
   
-  void checkHits(ArrayList<PVector> a){
+  void checkCylinderCollision(ArrayList<PVector> a){
     for(PVector v: a){
       PVector cyl = new PVector(v.x, 0, -v.y);
       if(distance(cyl, location) < (cylinderBaseSize + sizeSphere)){

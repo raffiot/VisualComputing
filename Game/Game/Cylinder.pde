@@ -1,3 +1,4 @@
+// Cylinder sizes constant
 float cylinderBaseSize = 10;
 float cylinderHeight = 20;
 int cylinderResolution = 10;
@@ -13,6 +14,7 @@ class Cylinder{
     openTriangle2 = new PShape();
   }
   
+  //Method to draw a cylinder at postion mX,mY,mZ
   void show(float mX , float mY, float mZ){
     float angle;
     float[] x = new float[cylinderResolution + 1];
@@ -46,17 +48,17 @@ class Cylinder{
         shape(openTriangle2);
         shape(openCylinder);
     }
-    
+  
   void drawCylinder(ArrayList<PVector> vectors){
-    cylinderOnPlate = new ArrayList<PVector>();
+    cylindersGame = new ArrayList<PVector>(); //Update cylindersGame ArrayList with cylinders in cylindersShifted to be use it in checkCylinderCollision()
     for(PVector v : vectors){
       pushMatrix();
       if(globalState == State.GAME){
-        show(v.x-width/2, v.y-height/2, 0);
-        cylinderOnPlate.add(new PVector(v.x-width/2, v.y-height/2, 0));
+        show(v.x-width/2, v.y-height/2, 0);  //translate cylinders to be at the right position in game mode
+        cylindersGame.add(new PVector(v.x-width/2, v.y-height/2, 0));  
       }
       else{
-        show(v.x,v.y, 0);
+        show(v.x,v.y, 0);  //In SHIFTED mode only call the show method
       }
       popMatrix();
     }
