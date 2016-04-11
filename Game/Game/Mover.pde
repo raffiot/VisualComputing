@@ -19,7 +19,6 @@ class Mover {
   void display() {
     stroke(0);
     strokeWeight(2);
-    fill(127);
     translate(location.x, location.y, -location.z);
     sphere(sizeSphere);
   }

@@ -19,7 +19,7 @@ ArrayList<PVector> cylindersGame = new ArrayList();
 
 Mover mover;
 Cylinder c;
-
+PGraphics mySurface;
 //Different State of the game,
 //GAME := State in which we can move the plate and the ball moves
 //SHIFTED := State in which we enter when we press SHIFT
@@ -30,34 +30,37 @@ State globalState = State.GAME;
 
 
 void settings() {
-  size(500, 500, P3D);
+  size(1200, 800, P3D);
 }
 
 void setup() {
   noStroke();
   mover = new Mover();
   c = new Cylinder();
+  mySurface = createGraphics(1200,150,P2D);
 }
 
-void draw() { 
-  background(89);
-  
+void draw() {
+
+  background(80,255,20);
+  drawMySurface();
+  image(mySurface,0,650);
   //Draw depending of game mode
   switch (globalState) {
     
    case GAME:
      //Display top left of parameters
      textSize(16);
-     text("rotateX: " + degrees(rX) + " rotateZ: " + degrees(rZ) + " MouseW: " + mouseW, 5, 10,0);
+     fill(0);
+     text("rotateX: " + degrees(rX) + " rotateZ: " + degrees(rZ) + " MouseW: " + mouseW, 5, 15,0);
      lights();
-     camera(width/2.0, height/2.0, 450, 250, 250, 0, 0, 1, 0);
      drawGame();
      break;
      
    case SHIFTED:
      placeCylinder();
      break;
-  } 
+  }
 }
 
 void placeCylinder(){
@@ -65,12 +68,15 @@ void placeCylinder(){
   pushMatrix();
   translate(width/2, height/2, 0);
   rotateX(PI/2);
+  fill(255,255,255);
   box(boxX,boxY,boxZ);       //Draw vertical box
   translate(mover.location.x, mover.location.y, mover.location.z); //Draw ball at the good position
+  fill(220,220,10);
   sphere(sizeSphere);
   popMatrix();
   
   pushMatrix();
+  fill(255,0,127);
   c.show(mouseX,mouseY, 0);  //Draw cylinder following the cursor
   popMatrix();
   pushMatrix();
@@ -84,11 +90,13 @@ void drawGame(){
   float rotZ = map(rZ,-1,1,-PI/3.0, PI/3.0);
   float rotX = map(rX,-1,1,-PI/3.0, PI/3.0 );
   rotateX(rotX);
-  rotateZ(rotZ); 
+  rotateZ(rotZ);
+  fill(255,255,255);
   box(boxX,boxY,boxZ); //draw rotated box
   
   pushMatrix();
   translate(0,-15,0);
+  fill(220,220,10);
   mover.computeVelocity(rotZ,rotX);
   mover.checkCylinderCollision(cylindersGame);
   mover.update();
@@ -98,6 +106,7 @@ void drawGame(){
   
   pushMatrix();
   rotateX(PI/2);
+  fill(255,0,127);
   c.drawCylinder(cylindersShifted);  //draw all cylinders placed
   popMatrix();
 }
@@ -165,4 +174,9 @@ void keyReleased(){
     globalState = State.GAME;
   }
 }  
-  
+
+void drawMySurface() {
+  mySurface.beginDraw();
+  mySurface.background(0,51,51);
+  mySurface.endDraw();
+}  
