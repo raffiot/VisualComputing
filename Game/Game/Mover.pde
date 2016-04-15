@@ -62,8 +62,9 @@ class Mover {
     for(PVector v: a){
       PVector cyl = new PVector(v.x, 0, -v.y);    // translate Cylinder coordonate to be in same coordonate than ball
       if(distance(cyl, location) < (cylinderBaseSize + sizeSphere)){
-        PVector n = PVector.sub(location, cyl).normalize();
-        PVector vel = PVector.sub(velocity, n.mult(velocity.dot(n)*2));
+        PVector n = PVector.sub(cyl, location).normalize();
+        PVector n2 = new PVector(n.x, n.y, n.z);
+        PVector vel = PVector.sub(velocity, n2.mult(velocity.dot(n2)*2));
         velocity = (new PVector(vel.x, 0, vel.z)).mult(0.8);  //multiply by 0.8 to make the ball slower after bounces 
         location = cyl.sub(n.normalize().mult(sizeSphere+cylinderBaseSize+0.1)); //Relocate the ball after bounce
       }

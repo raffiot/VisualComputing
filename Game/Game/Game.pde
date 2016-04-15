@@ -13,6 +13,9 @@ int boxZ = 200;
 // Constant size of the ball
 int sizeSphere = 10;
 
+//A shape representing cylinder.
+PShape openCylinder;
+
 //ArrayLists containing coordinates for cylinder for each state
 ArrayList<PVector> cylindersShifted = new ArrayList();
 ArrayList<PVector> cylindersGame = new ArrayList();
@@ -77,7 +80,8 @@ void placeCylinder(){
   
   pushMatrix();
   fill(255,0,127);
-  c.show(mouseX,mouseY, 0);  //Draw cylinder following the cursor
+  c.set(mouseX,mouseY, 0);  //Draw cylinder following the cursor
+  c.drawing(mouseX, mouseY, 0);
   popMatrix();
   pushMatrix();
   c.drawCylinder(cylindersShifted); //Draw cylinders already placed
@@ -179,4 +183,4 @@ void drawMySurface() {
   mySurface.beginDraw();
   mySurface.background(0,51,51);
   mySurface.endDraw();
-}  
+}
