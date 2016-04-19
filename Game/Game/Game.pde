@@ -13,6 +13,10 @@ int boxZ = 200;
 // Constant size of the ball
 int sizeSphere = 10;
 
+double score = 0f;
+double lastScore = 0f;
+double velocityForScore = 0f;
+
 //A shape representing cylinder.
 PShape openCylinder;
 
@@ -23,6 +27,9 @@ ArrayList<PVector> cylindersGame = new ArrayList();
 Mover mover;
 Cylinder c;
 PGraphics mySurface;
+PGraphics topView;
+PGraphics displayScore;
+PGraphics barChart;
 //Different State of the game,
 //GAME := State in which we can move the plate and the ball moves
 //SHIFTED := State in which we enter when we press SHIFT
@@ -41,13 +48,21 @@ void setup() {
   mover = new Mover();
   c = new Cylinder();
   mySurface = createGraphics(1200,150,P2D);
+  topView = createGraphics(130,130,P2D);
+  displayScore = createGraphics(100,130,P2D);
+  barChart = createGraphics(700,130,P2D);
 }
 
 void draw() {
 
   background(80,255,20);
   drawMySurface();
-  image(mySurface,0,650);
+  image(mySurface,0,650);  
+  drawTopView();
+  image(topView,10,660);
+  drawDisplayScore();
+  image(displayScore,150,660);
+  
   //Draw depending of game mode
   switch (globalState) {
     
@@ -184,3 +199,30 @@ void drawMySurface() {
   mySurface.background(0,51,51);
   mySurface.endDraw();
 }
+
+void drawTopView() {
+  topView.beginDraw();
+  topView.background(255,255,255);
+  float x = map(mover.location.x,-boxX/2,boxX/2,0,130);
+  float y = map(mover.location.z,-boxZ/2,boxZ/2,-130,0);
+  float ratio = 2*130.0/boxX;
+  topView.fill(0,0,0);
+  topView.ellipse(x, -y,sizeSphere*ratio, sizeSphere*ratio);
+  for(PVector v : cylindersShifted){
+    float i = map(v.x-width/2,-boxX/2,boxX/2,0,130);
+    float j = map(v.y-height/2,-boxZ/2,boxZ/2, 0,130);
+    topView.fill(255,0,127);
+    topView.ellipse(i, j, cylinderBaseSize*ratio, cylinderBaseSize*ratio);
+  }  
+  topView.endDraw();
+} 
+
+void drawDisplayScore(){
+  displayScore.beginDraw();
+  displayScore.background(230,4,35);
+  displayScore.textSize(14);
+  displayScore.text("Score : \n" + score, 5 , 15);
+  displayScore.text("Velocity : \n" + velocityForScore, 5, 60);
+  displayScore.text("Last score: \n" + lastScore, 5, 100);
+  displayScore.endDraw();
+}  

@@ -34,6 +34,7 @@ class Mover {
     friction.normalize();
     friction.mult(frictionMagnitude);
     velocity.add(friction).add(gravityForce);
+    velocityForScore = Math.sqrt((velocity.x*velocity.x) + (velocity.z * velocity.z));
   }
   
   //Make the ball bounce over box bounds
@@ -41,19 +42,31 @@ class Mover {
     //multiply by 0.8 to make the ball slower after bounces 
     if(location.x > 95){
       location.x = 95;
-      velocity.set(-velocity.x, velocity.y,velocity.z).mult(0.8); 
+      velocity.set(-velocity.x, velocity.y,velocity.z).mult(0.8);
+      
+      lastScore = score;
+      score -= velocityForScore;
     }
     else if(location.x < -95){
       location.x = -95;
       velocity.set(-velocity.x, velocity.y,velocity.z).mult(0.8);
+      
+      lastScore = score;
+      score -= velocityForScore;
     }
     if(location.z > 95){
       location.z = 95;
       velocity.set(velocity.x, velocity.y, -velocity.z).mult(0.8);
+      
+      lastScore = score;
+      score -= velocityForScore;
     }
     else if(location.z < -95){
       location.z = -95;
       velocity.set(velocity.x, velocity.y, -velocity.z).mult(0.8);
+
+      lastScore = score;
+      score -= velocityForScore;
     }  
   }
   
@@ -62,6 +75,7 @@ class Mover {
     for(PVector v: a){
       PVector cyl = new PVector(v.x, 0, -v.y);    // translate Cylinder coordonate to be in same coordonate than ball
       if(distance(cyl, location) < (cylinderBaseSize + sizeSphere)){
+        score += velocityForScore;
         PVector n = PVector.sub(cyl, location).normalize();
         PVector n2 = new PVector(n.x, n.y, n.z);
         PVector vel = PVector.sub(velocity, n2.mult(velocity.dot(n2)*2));
