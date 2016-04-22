@@ -13,9 +13,9 @@ int boxZ = 200;
 // Constant size of the ball
 int sizeSphere = 10;
 
-double score = 0f;
-double lastScore = 0f;
-double velocityForScore = 0f;
+float score = 0f;
+float lastScore = 0f;
+float velocityForScore = 0f;
 
 //A shape representing cylinder.
 PShape openCylinder;
@@ -23,6 +23,7 @@ PShape openCylinder;
 //ArrayLists containing coordinates for cylinder for each state
 ArrayList<PVector> cylindersShifted = new ArrayList();
 ArrayList<PVector> cylindersGame = new ArrayList();
+ArrayList<Float> scores = new ArrayList();
 
 Mover mover;
 Cylinder c;
@@ -30,6 +31,8 @@ PGraphics mySurface;
 PGraphics topView;
 PGraphics displayScore;
 PGraphics barChart;
+
+HScrollbar scroll;
 //Different State of the game,
 //GAME := State in which we can move the plate and the ball moves
 //SHIFTED := State in which we enter when we press SHIFT
@@ -50,18 +53,26 @@ void setup() {
   mySurface = createGraphics(1200,150,P2D);
   topView = createGraphics(130,130,P2D);
   displayScore = createGraphics(100,130,P2D);
-  barChart = createGraphics(700,130,P2D);
+  barChart = createGraphics(900,100,P2D);
+  scroll = new HScrollbar(280,780,300,10);
 }
 
 void draw() {
 
   background(80,255,20);
+
   drawMySurface();
   image(mySurface,0,650);  
   drawTopView();
   image(topView,10,660);
   drawDisplayScore();
   image(displayScore,150,660);
+  drawBarChart();
+  image(barChart,270,660);
+  scroll.update();
+  scroll.display();
+  stroke(5);
+ 
   
   //Draw depending of game mode
   switch (globalState) {
@@ -95,8 +106,12 @@ void placeCylinder(){
   
   pushMatrix();
   fill(255,0,127);
-  c.set(mouseX,mouseY, 0);  //Draw cylinder following the cursor
-  c.drawing(mouseX, mouseY, 0);
+  
+  if(mouseY < 650){
+    c.set(mouseX,mouseY, 0);  //Draw cylinder following the cursor
+    c.drawing(mouseX, mouseY, 0);
+  }
+
   popMatrix();
   pushMatrix();
   c.drawCylinder(cylindersShifted); //Draw cylinders already placed
@@ -143,23 +158,25 @@ void mousePressed(){
 
 void mouseDragged(){
   //Compute the rotation maked by a mouseDragged
-  if(globalState == State.GAME){
-    rZ += (mouseX - mx) * mouseW;
-    rX -= (mouseY - my) * mouseW;
-    if(rZ > 1){
-      rZ=1;
+  if(mouseY <= 650){
+    if(globalState == State.GAME){
+      rZ += (mouseX - mx) * mouseW;
+      rX -= (mouseY - my) * mouseW;
+      if(rZ > 1){
+        rZ=1;
+      }
+      else if(rZ < -1){
+        rZ=-1; 
+      }
+      if(rX> 1){
+        rX=1;
+      }
+      else if(rX < -1){
+        rX=-1; 
+      } 
+      mx = mouseX;
+      my = mouseY;
     }
-    else if(rZ < -1){
-      rZ=-1; 
-    }
-    if(rX> 1){
-      rX=1;
-    }
-    else if(rX < -1){
-      rX=-1; 
-    } 
-    mx = mouseX;
-    my = mouseY;
   }
 }
 
@@ -225,4 +242,24 @@ void drawDisplayScore(){
   displayScore.text("Velocity : \n" + velocityForScore, 5, 60);
   displayScore.text("Last score: \n" + lastScore, 5, 100);
   displayScore.endDraw();
+}
+
+void drawBarChart(){
+  barChart.beginDraw();
+  barChart.background(255,230,230);
+  for(int i =0 ; i < scores.size() ; i++){
+     float d = map(scores.get(i),-200f,200f,0f,95f);
+     float coefficient = scroll.getPos()*2.5;
+     if( d > 0){
+       barChart.fill(10,10,240);
+       barChart.rect(i*coefficient+ 5*i,(float) (100-d), 5,(float) d);
+     }     
+  }  
+  for(float j = 0; j < 100; j +=7.7){
+    barChart.strokeWeight(1);
+    barChart.stroke(255,230,230);
+    barChart.line(0,j,900,j);
+  }  
+     
+  barChart.endDraw();
 }  
