@@ -79,13 +79,15 @@ PImage sobel(PImage img) {
     if(hue(img.pixels[i]) < 360 && hue(img.pixels[i]) > 140){
       img.pixels[i] = color(0);
     }
-    if(hue(img.pixels[i]) < 110 && hue(img.pixels[i]) > 0){
+    else if(hue(img.pixels[i]) < 110 && hue(img.pixels[i]) > 0){
       img.pixels[i] = color(0);
     }
-    if(brightness(img.pixels[i]) > 124){
+    else if(brightness(img.pixels[i]) > 124){
       img.pixels[i] = color(0);
     } 
-    
+    else{
+      img.pixels[i] = color(255);
+    }
   }
   //image(img,0,0);
   float[] buffer = convolute(convoluteForImage(img));
