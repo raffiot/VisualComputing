@@ -20,10 +20,14 @@ void setup() {
   
   //noLoop(); // no interactive behaviour: draw() will be called only once.
 }
-void draw() {  
+void draw() {
   result = createImage(img.width, img.height, RGB);
   result = sobel(img);
+  image(result,0,0);
+  hough(result);
 }
+
+
 
 float[] convolute(PImage image){
   float[] buffer = new float[img.width * img.height];
@@ -49,7 +53,7 @@ float[] convolute(PImage image){
   return buffer;
 }
 
-PImage convoluteForImage(PImage image){
+PImage gaussianBlur(PImage image){
   PImage result = createImage(image.width,image.height, ALPHA);
   
   for(int i = 0; i< img.width; i++){
@@ -70,27 +74,25 @@ PImage convoluteForImage(PImage image){
   return result;
 }
 
+
 PImage sobel(PImage img) {
 
   PImage result = createImage(img.width, img.height, ALPHA);
   // clear the image
+  
   for (int i = 0; i < img.width * img.height; i++) {
-    result.pixels[i] = color(0);
-    if(hue(img.pixels[i]) < 360 && hue(img.pixels[i]) > 140){
-      img.pixels[i] = color(0);
+    if((hue(img.pixels[i]) < 136 && hue(img.pixels[i]) > 96) && (brightness(img.pixels[i]) > 25) && (saturation(img.pixels[i]) > 50)){
+      result.pixels[i] = color(255);
     }
-    else if(hue(img.pixels[i]) < 110 && hue(img.pixels[i]) > 0){
-      img.pixels[i] = color(0);
-    }
-    else if(brightness(img.pixels[i]) > 124){
-      img.pixels[i] = color(0);
-    } 
     else{
-      img.pixels[i] = color(255);
-    }
+      result.pixels[i] = color(0);
+    }  
+ 
   }
-  //image(img,0,0);
-  float[] buffer = convolute(convoluteForImage(img));
+  
+   result = gaussianBlur(result);
+  
+  float[] buffer = convolute(result);
   for (int y = 2; y < img.height - 2; y++) { // Skip top and bottom edges
     for (int x = 2; x < img.width - 2; x++) { // Skip left and right
       if (buffer[y * img.width + x] > (int)(max * 0.4f)) { // 30% of the max
@@ -120,12 +122,12 @@ void hough(PImage edgeImg) {
       // Are we on an edge?
       if (brightness(edgeImg.pixels[y * edgeImg.width + x]) != 0) {
         
-        for( float phi = 0; phi <phiDim; phi = phi + discretizationStepsPhi){
-          int r = 0;          
-          r = (int) (x*Math.cos(phi) + y*Math.sin(phi));
-          r += (rDim - 1) / 2;
-          accumulator[(int) (phi*rDim + r)] +=1; 
-        }  
+        for (int phi = 0; phi < phiDim; phi++) {
+          float p = phi * discretizationStepsPhi;
+          int r = (int) ((x * cos(p) + y * sin(p))/discretizationStepsR);
+          r += (rDim -1) /2;
+          accumulator[(phi + 1) * (rDim + 2) + (r + 1)] += 1;
+        }
         
         // ...determine here all the lines (r, phi) passing through
         // pixel (x,y), convert (r,phi) to coordinates in the
@@ -144,4 +146,49 @@ void hough(PImage edgeImg) {
     // houghImg.resize(400, 400);
   houghImg.resize(400,400);  
   houghImg.updatePixels();
+  //image(houghImg,0,0);
+  
+  for (int idx = 0; idx < accumulator.length; idx++) {
+    if (accumulator[idx] > 200) {
+      // first, compute back the (r, phi) polar coordinates:
+      int accPhi = (int) (idx / (rDim + 2)) - 1;
+      int accR = idx - (accPhi + 1) * (rDim + 2) - 1;
+      float r = (accR - (rDim - 1) * 0.5f) * discretizationStepsR;
+      float phi = accPhi * discretizationStepsPhi;
+      // Cartesian equation of a line: y = ax + b
+      // in polar, y = (-cos(phi)/sin(phi))x + (r/sin(phi))
+      // => y = 0 : x = r / cos(phi)
+      // => x = 0 : y = r / sin(phi)
+      // compute the intersection of this line with the 4 borders of
+      // the image
+      int x0 = 0;
+      int y0 = (int) (r / sin(phi));
+      int x1 = (int) (r / cos(phi));
+      int y1 = 0;
+      int x2 = edgeImg.width;
+      int y2 = (int) (-cos(phi) / sin(phi) * x2 + r / sin(phi));
+      int y3 = edgeImg.width;
+      int x3 = (int) (-(y3 - r / sin(phi)) * (sin(phi) / cos(phi)));
+      // Finally, plot the lines
+      stroke(204,102,0);
+      if (y0 > 0) {
+      if (x1 > 0)
+      line(x0, y0, x1, y1);
+      else if (y2 > 0)
+      line(x0, y0, x2, y2);
+      else
+      line(x0, y0, x3, y3);
+      }
+      else {
+      if (x1 > 0) {
+      if (y2 > 0)
+      line(x1, y1, x2, y2);
+      else
+      line(x1, y1, x3, y3);
+      }
+      else
+      line(x2, y2, x3, y3);
+      }
+    }
+  }
 }
