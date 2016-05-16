@@ -1,9 +1,10 @@
-PImage img;
+ArrayList<Integer> bestCandidates;
+ArrayList<PVector> vectors;
 PImage result;
 float max=0;
-int[][] kernel = {{12,24,12},
-                  {24,40,24},
-                  {12,24,12}};
+int[][] kernel = {{9,12,9},
+                  {12,15,12},
+                  {9,12,9}};
 int[][] hkernel = {{0,1,0},
                   {0,0,0},
                   {0,-1,0}};
@@ -11,22 +12,36 @@ int[][] vkernel = {{0,0,0},
                   {1,0,-1},
                   {0,0,0}};              
   
+import processing.video.*;
+import java.util.Collections;
+Capture cam;
+PImage img;
+
 void settings() {
-  size(800, 600);
+  size(640, 480);
 }
 void setup() {
-  img = loadImage("C:/Users/Raphael/Documents/VisualComputing/Week08/board1.jpg");
-   // create a new, initially transparent, 'result' image
-  
-  //noLoop(); // no interactive behaviour: draw() will be called only once.
+  String[] cameras = Capture.list();
+  if (cameras.length == 0) {
+    println("There are no cameras available for capture.");
+    exit();
+  } else {
+    println("Available cameras:");
+    for (int i = 0; i < cameras.length; i++) {
+      println(cameras[i]);
+    }
+    cam = new Capture(this, cameras[0]);
+    cam.start();
+  }
 }
 void draw() {
-  result = createImage(img.width, img.height, RGB);
-  result = sobel(img);
-  image(result,0,0);
-  hough(result);
+  if (cam.available() == true) {
+    cam.read();
+  }
+  img = cam.get();
+  //image(img, 0, 0);
+  hough(sobel(img), 6, 200);
 }
-
 
 
 float[] convolute(PImage image){
@@ -81,17 +96,14 @@ PImage sobel(PImage img) {
   // clear the image
   
   for (int i = 0; i < img.width * img.height; i++) {
-    if((hue(img.pixels[i]) < 136 && hue(img.pixels[i]) > 96) && (brightness(img.pixels[i]) > 25) && (saturation(img.pixels[i]) > 50)){
+    if((hue(img.pixels[i]) < 136 && hue(img.pixels[i]) > 96) && (brightness(img.pixels[i]) > 60) && (saturation(img.pixels[i]) > 73)){
       result.pixels[i] = color(255);
     }
     else{
       result.pixels[i] = color(0);
     }  
- 
   }
-  
-   result = gaussianBlur(result);
-  
+  result = gaussianBlur(result);
   float[] buffer = convolute(result);
   for (int y = 2; y < img.height - 2; y++) { // Skip top and bottom edges
     for (int x = 2; x < img.width - 2; x++) { // Skip left and right
@@ -102,11 +114,12 @@ PImage sobel(PImage img) {
       }
     }
   }
+  image(result, 0, 0);
   return result;
 }
 
 //WEEK09
-void hough(PImage edgeImg) {
+void hough(PImage edgeImg, int nLines, int minVote) {
   float discretizationStepsPhi = 0.06f;
   float discretizationStepsR = 2.5f;
   // dimensions of the accumulator
@@ -146,15 +159,60 @@ void hough(PImage edgeImg) {
     // houghImg.resize(400, 400);
   houghImg.resize(400,400);  
   houghImg.updatePixels();
-  //image(houghImg,0,0);
+
+  ArrayList<Integer> bestCandidates = new ArrayList<Integer>();
+  ArrayList<PVector> vectors = new ArrayList<PVector>();
+  for(int i = 0; i < accumulator.length; i++){
+    if(accumulator[i] > minVote){
+      bestCandidates.add(i);
+    }  
+  }  
   
-  for (int idx = 0; idx < accumulator.length; idx++) {
-    if (accumulator[idx] > 200) {
+  // size of the region we search for a local maximum
+  int neighbourhood = 10;
+  // only search around lines with more that this amount of votes
+  // (to be adapted to your image)
+  int minVotes = 200;
+  for (int accR = 0; accR < rDim; accR++) {
+    for (int accPhi = 0; accPhi < phiDim; accPhi++) {
+      // compute current index in the accumulator
+      int idx = (accPhi + 1) * (rDim + 2) + accR + 1;
+      if (accumulator[idx] > minVotes) {
+        boolean bestCandidate=true;
+        // iterate over the neighbourhood
+        for(int dPhi=-neighbourhood/2; dPhi < neighbourhood/2+1; dPhi++) {
+          // check we are not outside the image
+          if( accPhi+dPhi < 0 || accPhi+dPhi >= phiDim) continue;
+          for(int dR=-neighbourhood/2; dR < neighbourhood/2 +1; dR++) {
+            // check we are not outside the image
+            if(accR+dR < 0 || accR+dR >= rDim) continue;
+            int neighbourIdx = (accPhi + dPhi + 1) * (rDim + 2) + accR + dR + 1;
+            if(accumulator[idx] < accumulator[neighbourIdx]) {
+              // the current idx is not a local maximum!
+              bestCandidate=false;
+              break;
+            }
+          }
+            if(!bestCandidate) break;
+        }
+        if(bestCandidate) {
+          // the current idx *is* a local maximum
+          bestCandidates.add(idx);
+        }
+      }
+    }
+  }  
+  
+  Collections.sort(bestCandidates, new HoughComparator(accumulator));
+  int i = 0;
+  while((i < nLines) && (i < bestCandidates.size())) {
+      int idx = bestCandidates.get(i);
       // first, compute back the (r, phi) polar coordinates:
       int accPhi = (int) (idx / (rDim + 2)) - 1;
       int accR = idx - (accPhi + 1) * (rDim + 2) - 1;
       float r = (accR - (rDim - 1) * 0.5f) * discretizationStepsR;
       float phi = accPhi * discretizationStepsPhi;
+      vectors.add(new PVector(r,phi));
       // Cartesian equation of a line: y = ax + b
       // in polar, y = (-cos(phi)/sin(phi))x + (r/sin(phi))
       // => y = 0 : x = r / cos(phi)
@@ -189,6 +247,26 @@ void hough(PImage edgeImg) {
       else
       line(x2, y2, x3, y3);
       }
+    i++;
+  }
+  getIntersections(vectors);
+}
+
+ArrayList<PVector> getIntersections(ArrayList<PVector> lines) {
+  ArrayList<PVector> intersections = new ArrayList<PVector>();
+  for (int i = 0; i < lines.size() - 1; i++) {
+    PVector line1 = lines.get(i);
+    for (int j = i + 1; j < lines.size(); j++) {
+      PVector line2 = lines.get(j);
+      double d = Math.cos(line2.y)*Math.sin(line1.y) - Math.cos(line1.y)*Math.sin(line2.y);
+      float x = (float) ((line2.x*Math.sin(line1.y)-line1.x*Math.sin(line2.y))/d);
+      float y = (float) ((-line2.x*Math.cos(line1.y)+line1.x*Math.cos(line2.y))/d);
+      // compute the intersection and add it to 'intersections'
+      intersections.add(new PVector(x,y));
+      // draw the intersection
+      fill(255, 128, 0);
+      ellipse(x, y, 10, 10);
     }
   }
+  return intersections;
 }
