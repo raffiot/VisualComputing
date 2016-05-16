@@ -17,6 +17,9 @@ import java.util.Collections;
 Capture cam;
 PImage img;
 
+
+
+
 void settings() {
   size(640, 480);
 }
@@ -130,14 +133,27 @@ void hough(PImage edgeImg, int nLines, int minVote) {
   // Fill the accumulator: on edge points (ie, white pixels of the edge
   // image), store all possible (r, phi) pairs describing lines going
   // through the point.
+  
+  // pre-compute the sin and cos values
+  float[] tabSin = new float[phiDim];
+  float[] tabCos = new float[phiDim];
+  float ang = 0;
+  float inverseR = 1.f / discretizationStepsR;
+  for (int accPhi = 0; accPhi < phiDim; ang += discretizationStepsPhi, accPhi++) {
+    // we can also pre-multiply by (1/discretizationStepsR) since we need it in the Hough loop
+    tabSin[accPhi] = (float) (Math.sin(ang) * inverseR);
+    tabCos[accPhi] = (float) (Math.cos(ang) * inverseR);
+  }
+  
+  
   for (int y = 0; y < edgeImg.height; y++) {
     for (int x = 0; x < edgeImg.width; x++) {
       // Are we on an edge?
       if (brightness(edgeImg.pixels[y * edgeImg.width + x]) != 0) {
         
         for (int phi = 0; phi < phiDim; phi++) {
-          float p = phi * discretizationStepsPhi;
-          int r = (int) ((x * cos(p) + y * sin(p))/discretizationStepsR);
+          //float p = phi * discretizationStepsPhi;
+          int r = (int) (x * tabCos[phi] + y * tabSin[phi]);
           r += (rDim -1) /2;
           accumulator[(phi + 1) * (rDim + 2) + (r + 1)] += 1;
         }
@@ -159,7 +175,9 @@ void hough(PImage edgeImg, int nLines, int minVote) {
     // houghImg.resize(400, 400);
   houghImg.resize(400,400);  
   houghImg.updatePixels();
-
+  
+  
+  
   ArrayList<Integer> bestCandidates = new ArrayList<Integer>();
   ArrayList<PVector> vectors = new ArrayList<PVector>();
   for(int i = 0; i < accumulator.length; i++){
