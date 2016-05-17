@@ -26,6 +26,7 @@ PImage img;
 
 
 void settings() {
+  //size(960,1280);
   //size(800,600);
   size(640, 480);
 }
@@ -37,7 +38,7 @@ void setup() {
   } else {
     println("Available cameras:");
     for (int i = 0; i < cameras.length; i++) {
-      println(cameras[i]);
+      println(cameras[i] + " " + i);
     }
     cam = new Capture(this, cameras[0]);
     cam.start();
