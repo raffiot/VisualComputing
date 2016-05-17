@@ -2,9 +2,14 @@ ArrayList<Integer> bestCandidates;
 ArrayList<PVector> vectors;
 PImage result;
 float max=0;
-int[][] kernel = {{9,12,9},
+int[][] gkernel = {{9,12,9},
                   {12,15,12},
                   {9,12,9}};
+int[][] agkernel = {{41,26,16,26,41},
+                    {26,7,4,7,26},
+                    {16,4,1,4,16},
+                    {26,7,4,7,26},
+                    {41,26,16,26,41}};
 int[][] hkernel = {{0,1,0},
                   {0,0,0},
                   {0,-1,0}};
@@ -21,6 +26,7 @@ PImage img;
 
 
 void settings() {
+  //size(800,600);
   size(640, 480);
 }
 void setup() {
@@ -41,9 +47,10 @@ void draw() {
   if (cam.available() == true) {
     cam.read();
   }
+  //img = loadImage("C:/Users/Raphael/Documents/VisualComputing/Week08/board4.jpg");
   img = cam.get();
   //image(img, 0, 0);
-  hough(sobel(img), 6, 200);
+  hough(sobel(img), 4, 200);
 }
 
 
@@ -81,8 +88,8 @@ PImage gaussianBlur(PImage image){
       for(int k = -1; k < 2; k++){
         for(int l = -1; l<2; l++){
           if( (i+k >= 0 && i+k < img.width) && ( j+l >= 0 && j+l < img.height)){
-            sum += brightness(image.pixels[(j+l)*img.width + i+k]) * kernel[k+1][l+1];
-            divid += kernel[k+1][l+1];
+            sum += brightness(image.pixels[(j+l)*img.width + i+k]) * gkernel[k+1][l+1];
+            divid += gkernel[k+1][l+1];
           }  
         }
       }
@@ -92,6 +99,26 @@ PImage gaussianBlur(PImage image){
   return result;
 }
 
+PImage antiGaussianBlur(PImage image){
+  PImage result = createImage(image.width,image.height, ALPHA);
+  
+  for(int i = 0; i< img.width; i++){
+    for(int j = 0; j < img.height; j++){ 
+      float divid = 0;
+      float sum = 0;
+      for(int k = -1; k < 4; k++){
+        for(int l = -1; l < 4; l++){
+          if( (i+k >= 0 && i+k < img.width) && ( j+l >= 0 && j+l < img.height)){
+            sum += brightness(image.pixels[(j+l)*img.width + i+k]) * agkernel[k+1][l+1];
+            divid += agkernel[k+1][l+1];
+          }  
+        }
+      }
+      result.pixels[j*image.width +i] = color(sum/divid);
+    }  
+  }
+  return result;
+}
 
 PImage sobel(PImage img) {
 
@@ -99,7 +126,7 @@ PImage sobel(PImage img) {
   // clear the image
   
   for (int i = 0; i < img.width * img.height; i++) {
-    if((hue(img.pixels[i]) < 136 && hue(img.pixels[i]) > 96) && (brightness(img.pixels[i]) > 60) && (saturation(img.pixels[i]) > 73)){
+    if((hue(img.pixels[i]) < 136 && hue(img.pixels[i]) > 96) && (brightness(img.pixels[i]) > 36) && (saturation(img.pixels[i]) > 60)){
       result.pixels[i] = color(255);
     }
     else{
@@ -107,6 +134,7 @@ PImage sobel(PImage img) {
     }  
   }
   result = gaussianBlur(result);
+  result = antiGaussianBlur(result);
   float[] buffer = convolute(result);
   for (int y = 2; y < img.height - 2; y++) { // Skip top and bottom edges
     for (int x = 2; x < img.width - 2; x++) { // Skip left and right
@@ -180,22 +208,18 @@ void hough(PImage edgeImg, int nLines, int minVote) {
   
   ArrayList<Integer> bestCandidates = new ArrayList<Integer>();
   ArrayList<PVector> vectors = new ArrayList<PVector>();
-  for(int i = 0; i < accumulator.length; i++){
-    if(accumulator[i] > minVote){
-      bestCandidates.add(i);
-    }  
-  }  
+    
   
   // size of the region we search for a local maximum
   int neighbourhood = 10;
   // only search around lines with more that this amount of votes
   // (to be adapted to your image)
-  int minVotes = 200;
+
   for (int accR = 0; accR < rDim; accR++) {
     for (int accPhi = 0; accPhi < phiDim; accPhi++) {
       // compute current index in the accumulator
       int idx = (accPhi + 1) * (rDim + 2) + accR + 1;
-      if (accumulator[idx] > minVotes) {
+      if (accumulator[idx] > minVote) {
         boolean bestCandidate=true;
         // iterate over the neighbourhood
         for(int dPhi=-neighbourhood/2; dPhi < neighbourhood/2+1; dPhi++) {
