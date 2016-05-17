@@ -1,3 +1,7 @@
+import processing.video.*;
+import java.util.Collections;
+import java.util.Random;
+
 ArrayList<Integer> bestCandidates;
 ArrayList<PVector> vectors;
 PImage result;
@@ -5,30 +9,23 @@ float max=0;
 int[][] gkernel = {{9,12,9},
                   {12,15,12},
                   {9,12,9}};
-int[][] agkernel = {{41,26,16,26,41},
-                    {26,7,4,7,26},
-                    {16,4,1,4,16},
-                    {26,7,4,7,26},
-                    {41,26,16,26,41}};
+
 int[][] hkernel = {{0,1,0},
                   {0,0,0},
                   {0,-1,0}};
 int[][] vkernel = {{0,0,0},
                   {1,0,-1},
-                  {0,0,0}};              
-  
-import processing.video.*;
-import java.util.Collections;
+                  {0,0,0}};
+                  
 Capture cam;
 PImage img;
-
+int width = 640;
+int height = 360;
 
 
 
 void settings() {
-  //size(960,1280);
-  //size(800,600);
-  size(640, 480);
+  size(width, height);
 }
 void setup() {
   String[] cameras = Capture.list();
@@ -40,7 +37,7 @@ void setup() {
     for (int i = 0; i < cameras.length; i++) {
       println(cameras[i] + " " + i);
     }
-    cam = new Capture(this, cameras[0]);
+    cam = new Capture(this, cameras[3]);
     cam.start();
   }
 }
@@ -48,11 +45,36 @@ void draw() {
   if (cam.available() == true) {
     cam.read();
   }
-  //img = loadImage("C:/Users/Raphael/Documents/VisualComputing/Week08/board4.jpg");
+  //img = loadImage("/Users/Valentin/Documents/Cours/2ème année Bachelor/Informatique Visuelle/Projet/VisualComputing/Week08/board2.jpg");
   img = cam.get();
   //image(img, 0, 0);
-  hough(sobel(img), 4, 200);
+  ArrayList<PVector> lines = hough(sobel(img), 4, 150);
+  displayQuads(lines);
 }
+
+void displayQuads(ArrayList<PVector> lines){
+  QuadGraph qg = new QuadGraph();
+  qg.build(lines, width, height);
+  List<int[]> quads = qg.findCycles();
+  for (int[] quad : quads) {
+    PVector l1 = lines.get(quad[0]);
+    PVector l2 = lines.get(quad[1]);
+    PVector l3 = lines.get(quad[2]);
+    PVector l4 = lines.get(quad[3]);
+    PVector c12 = intersection(l1, l2);
+    PVector c23 = intersection(l2, l3);
+    PVector c34 = intersection(l3, l4);
+    PVector c41 = intersection(l4, l1);
+    // Choose a random, semi-transparent colour
+    if(qg.isConvex(c12, c23, c34, c41) && qg.validArea(c12, c23, c34, c41, width*height, 0) && qg.nonFlatQuad(c12, c23, c34, c41)){
+      Random random = new Random();
+      fill(color(180, 30, 80));
+      quad(c12.x,c12.y,c23.x,c23.y,c34.x,c34.y,c41.x,c41.y);
+    }
+    
+  }
+}
+
 
 
 float[] convolute(PImage image){
@@ -100,27 +122,6 @@ PImage gaussianBlur(PImage image){
   return result;
 }
 
-PImage antiGaussianBlur(PImage image){
-  PImage result = createImage(image.width,image.height, ALPHA);
-  
-  for(int i = 0; i< img.width; i++){
-    for(int j = 0; j < img.height; j++){ 
-      float divid = 0;
-      float sum = 0;
-      for(int k = -1; k < 4; k++){
-        for(int l = -1; l < 4; l++){
-          if( (i+k >= 0 && i+k < img.width) && ( j+l >= 0 && j+l < img.height)){
-            sum += brightness(image.pixels[(j+l)*img.width + i+k]) * agkernel[k+1][l+1];
-            divid += agkernel[k+1][l+1];
-          }  
-        }
-      }
-      result.pixels[j*image.width +i] = color(sum/divid);
-    }  
-  }
-  return result;
-}
-
 PImage sobel(PImage img) {
 
   PImage result = createImage(img.width, img.height, ALPHA);
@@ -135,7 +136,17 @@ PImage sobel(PImage img) {
     }  
   }
   result = gaussianBlur(result);
-  result = antiGaussianBlur(result);
+  
+  for(int i = 0; i < result.width * result.height; i++) {
+    if(brightness(result.pixels[i]) > 40){
+      result.pixels[i] = color(255);
+    }
+    else{
+      result.pixels[i] = color(0);
+    }
+  }
+  
+  //result = antiGaussianBlur(result);
   float[] buffer = convolute(result);
   for (int y = 2; y < img.height - 2; y++) { // Skip top and bottom edges
     for (int x = 2; x < img.width - 2; x++) { // Skip left and right
@@ -151,7 +162,7 @@ PImage sobel(PImage img) {
 }
 
 //WEEK09
-void hough(PImage edgeImg, int nLines, int minVote) {
+ArrayList<PVector> hough(PImage edgeImg, int nLines, int minVote) {
   float discretizationStepsPhi = 0.06f;
   float discretizationStepsR = 2.5f;
   // dimensions of the accumulator
@@ -293,6 +304,7 @@ void hough(PImage edgeImg, int nLines, int minVote) {
     i++;
   }
   getIntersections(vectors);
+  return vectors;
 }
 
 ArrayList<PVector> getIntersections(ArrayList<PVector> lines) {
@@ -312,4 +324,11 @@ ArrayList<PVector> getIntersections(ArrayList<PVector> lines) {
     }
   }
   return intersections;
+}
+
+PVector intersection(PVector l1, PVector l2) {
+      double d = Math.cos(l2.y)*Math.sin(l1.y) - Math.cos(l1.y)*Math.sin(l2.y);
+      float x = (float) ((l2.x*Math.sin(l1.y)-l1.x*Math.sin(l2.y))/d);
+      float y = (float) ((-l2.x*Math.cos(l1.y)+l1.x*Math.cos(l2.y))/d);      
+      return new PVector(x,y);
 }
