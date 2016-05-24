@@ -4,6 +4,8 @@ import java.util.Random;
 
 ArrayList<Integer> bestCandidates;
 ArrayList<PVector> vectors;
+ArrayList<PVector> intersections = new ArrayList<PVector>();
+
 PImage result;
 float max=0;
 int[][] gkernel = {{9,12,9},
@@ -19,8 +21,8 @@ int[][] vkernel = {{0,0,0},
                   
 Capture cam;
 PImage img;
-int width = 640;
-int height = 360;
+static int width = 640;
+static int height = 480;
 
 
 
@@ -37,7 +39,7 @@ void setup() {
     for (int i = 0; i < cameras.length; i++) {
       println(cameras[i] + " " + i);
     }
-    cam = new Capture(this, cameras[3]);
+    cam = new Capture(this, cameras[0]);
     cam.start();
   }
 }
@@ -45,7 +47,7 @@ void draw() {
   if (cam.available() == true) {
     cam.read();
   }
-  //img = loadImage("/Users/Valentin/Documents/Cours/2ème année Bachelor/Informatique Visuelle/Projet/VisualComputing/Week08/board2.jpg");
+  //img = loadImage("C:/Users/Raphael/Documents/VisualComputing/Week08/board2.jpg");
   img = cam.get();
   //image(img, 0, 0);
   ArrayList<PVector> lines = hough(sobel(img), 4, 150);
@@ -308,7 +310,7 @@ ArrayList<PVector> hough(PImage edgeImg, int nLines, int minVote) {
 }
 
 ArrayList<PVector> getIntersections(ArrayList<PVector> lines) {
-  ArrayList<PVector> intersections = new ArrayList<PVector>();
+  intersections = new ArrayList<PVector>();
   for (int i = 0; i < lines.size() - 1; i++) {
     PVector line1 = lines.get(i);
     for (int j = i + 1; j < lines.size(); j++) {
