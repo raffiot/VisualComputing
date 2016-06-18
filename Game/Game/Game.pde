@@ -1,3 +1,5 @@
+import processing.video.*;
+
 // Constant for mouse wheel with initial value 0.01
 float mouseW = 0.01;
 // Actual rotation of the box
@@ -31,7 +33,8 @@ PGraphics mySurface;
 PGraphics topView;
 PGraphics displayScore;
 PGraphics barChart;
-
+PGraphics webcam;
+Movie video;
 HScrollbar scroll;
 //Different State of the game,
 //GAME := State in which we can move the plate and the ball moves
@@ -54,7 +57,12 @@ void setup() {
   topView = createGraphics(130,130,P2D);
   displayScore = createGraphics(100,130,P2D);
   barChart = createGraphics(900,100,P2D);
+  webcam = createGraphics(200,200,P2D);
   scroll = new HScrollbar(280,780,300,10);
+  
+  video = new Movie(this, "testvideo.mp4");
+  video.read();
+  video.loop();
 }
 
 void draw() {
@@ -69,10 +77,8 @@ void draw() {
   image(displayScore,150,660);
   drawBarChart();
   image(barChart,270,660);
-  scroll.update();
-  scroll.display();
-  stroke(5);
- 
+  drawWebcam();
+  image(webcam,0,0);
   
   //Draw depending of game mode
   switch (globalState) {
@@ -262,4 +268,29 @@ void drawBarChart(){
   }  
      
   barChart.endDraw();
+}
+
+void drawWebcam(){
+  if (video.available() == true) {
+    pushMatrix();
+    translate(1000,0);
+    video.read();
+    PImage img = video.get();
+    img.resize(200,200);
+    image(img,0,0);
+    PImage img2 = sobel(img);
+    img2.resize(200,200);
+    image(im2,0,200);
+    ArrayList<PVector> lines = hough(sobel(img), 6, 100);
+    ArrayList<Ar temporaryIntersect = displayQuads(lines);
+    popMatrix();
+    TwoDThreeD two = new TwoDThreeD(width, height);
+    PVector rotations = new PVector();
+    if (temporaryIntersect.size() != 0) {
+      rotations = two.get3DRotations(temporaryIntersect.get(0));    
+      //rX = map(rotations.x, -PI / 3, PI / 3, -1, 1);
+      //rZ = map(rotations.z, -PI / 3, PI / 3, -1, 1);
+    }
+    
+  }
 }  
