@@ -102,7 +102,7 @@ PImage sobel(PImage img) {
   // clear the image
   
   for (int i = 0; i < img.width * img.height; i++) {
-    if((hue(img.pixels[i]) < 136 && hue(img.pixels[i]) > 96) && (brightness(img.pixels[i]) > 25) && (saturation(img.pixels[i]) > 60)){
+    if((hue(img.pixels[i]) < 139 && hue(img.pixels[i]) > 96) && (brightness(img.pixels[i]) > 25) && (saturation(img.pixels[i]) > 112)){
       result.pixels[i] = color(255);
     }
     else{

@@ -280,16 +280,16 @@ void drawWebcam(){
     image(img,0,0);
     PImage img2 = sobel(img);
     img2.resize(200,200);
-    image(im2,0,200);
-    ArrayList<PVector> lines = hough(sobel(img), 6, 100);
-    ArrayList<Ar temporaryIntersect = displayQuads(lines);
+    image(img2,0,200);
+    ArrayList<PVector> lines = hough(sobel(img), 6, 120);
+    ArrayList<ArrayList<PVector>> temporaryIntersect = displayQuads(lines);
     popMatrix();
     TwoDThreeD two = new TwoDThreeD(width, height);
     PVector rotations = new PVector();
     if (temporaryIntersect.size() != 0) {
       rotations = two.get3DRotations(temporaryIntersect.get(0));    
-      //rX = map(rotations.x, -PI / 3, PI / 3, -1, 1);
-      //rZ = map(rotations.z, -PI / 3, PI / 3, -1, 1);
+      rX = map(rotations.x, -PI / 3, PI / 3, -1, 1);
+      rZ = map(rotations.z, -PI / 3, PI / 3, -1, 1);
     }
     
   }
