@@ -281,7 +281,7 @@ void drawWebcam(){
     PImage img2 = sobel(img);
     img2.resize(200,200);
     image(img2,0,200);
-    ArrayList<PVector> lines = hough(sobel(img), 6, 120);
+    ArrayList<PVector> lines = hough(sobel(img), 4, 90);
     ArrayList<ArrayList<PVector>> temporaryIntersect = displayQuads(lines);
     popMatrix();
     TwoDThreeD two = new TwoDThreeD(width, height);
