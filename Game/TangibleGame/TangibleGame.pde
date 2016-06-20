@@ -288,8 +288,8 @@ void drawWebcam(){
     PVector rotations = new PVector();
     if (temporaryIntersect.size() != 0) {
       rotations = two.get3DRotations(temporaryIntersect.get(0));    
-      rX = map(rotations.x, -PI / 3, PI / 3, -1, 1);
-      rZ = map(rotations.z, -PI / 3, PI / 3, -1, 1);
+      rX = map(rotations.x, -PI , PI , -1, 1);
+      rZ = map(rotations.z, -PI , PI , -1, 1);
     }
     
   }
